@@ -11,6 +11,7 @@ https://ms.portal.azure.com/#create/Microsoft.AutomationAccount
 1. Download the IIS DSC file;
 https://raw.githubusercontent.com/Gordonby/DscLab/master/DscScripts/IIS.ps1
 
+
 1. Once the Automation account has been created, In the *DSC Configurations* section create a new configuration, uploading the IIS.ps1 file.
 
 1. After the file has been uploaded, return to the *DSC Configurations* section and choose to *Compile*.
