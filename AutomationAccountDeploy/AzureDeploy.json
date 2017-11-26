@@ -1,0 +1,114 @@
+{
+  "$schema": "http://schemas.microsoft.org/azure/deploymentTemplate?api-version=2015-01-01#",
+  "contentVersion": "1.0",
+  "parameters": {
+      "AutomationAccountName": {
+          "defaultValue": null,
+          "type": "string"
+      },
+      "DomainName": {
+          "defaultValue": "gazuredomain.byers.me",
+          "type": "string"
+      },
+      "Username": {
+          "type": "string",
+          "defaultValue": "domjoiner@gazuredomain.byers.me",
+          "metadata": {
+              "description": "Domain username that has permission to join computers to domain"
+          }
+      },
+      "Password": {
+          "type": "string",
+          "defaultValue": "voow3rFO"
+      }
+  },
+  "variables": {
+      "sku": "Free",
+      "variables_DomainName": "gAzureDomainName",
+      "credentials_Name": "GAzureDomainCreds",
+      "xDSCDomainjoin110Name": "xDSCDomainjoin",
+      "xDSCDomainjoin110Uri": "https://devopsgallerystorage.blob.core.windows.net/packages/xdscdomainjoin.1.1.0.nupkg"
+  },
+  "resources": [
+      {
+          "name": "[parameters('AutomationAccountName')]",
+          "type": "Microsoft.Automation/automationAccounts",
+          "apiVersion": "2015-10-31",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [],
+          "tags": {},
+          "properties": {
+              "sku": {
+                  "name": "[variables('sku')]"
+              }
+          },
+          "resources": [
+              {
+                  "name": "[variables('credentials_Name')]",
+                  "type": "credentials",
+                  "apiVersion": "2015-10-31",
+                  "location": "[resourceGroup().location]",
+                  "dependsOn": [
+                      "[concat('Microsoft.Automation/automationAccounts/', parameters('AutomationAccountName'))]"
+                  ],
+                  "tags": {},
+                  "properties": {
+                      "userName": "[parameters('UserName')]",
+                      "password": "[parameters('Password')]"
+                  }
+              },
+              {
+                  "name": "[variables('variables_DomainName')]",
+                  "type": "variables",
+                  "apiVersion": "2015-10-31",
+                  "location": "[resourceGroup().location]",
+                  "dependsOn": [
+                      "[concat('Microsoft.Automation/automationAccounts/', parameters('AutomationAccountName'))]"
+                  ],
+                  "tags": {},
+                  "properties": {
+                      "isEncrypted": false,
+                      "type": "String",
+                      "value": "[concat('\"',parameters('DomainName'),'\"')]",
+                      "description": ""
+                  }
+              },
+              {
+                "name": "[variables('xDSCDomainjoin110Name')]",
+                "type": "modules",
+                "apiVersion": "2015-10-31",
+                "location": "[resourceGroup().location]",
+                "dependsOn": [
+                    "[concat('Microsoft.Automation/automationAccounts/', parameters('AutomationAccountName'))]"
+                ],
+                "tags": {},
+                "properties": {
+                    "contentLink": {
+                        "uri": "[variables('xDSCDomainjoin110Uri')]"
+                    }
+                }
+            },
+            {
+              "name": "GDomain",
+              "type": "configurations",
+              "apiVersion": "2015-10-31",
+              "properties": {
+                "logVerbose": false,
+                "logProgress": false,
+                "source":{
+                  "type":"embeddedContent",
+                  "value":"Configuration GDomain \r\n { \r\n Import-DscResource -ModuleName 'PSDesiredStateConfiguration' \r\n Import-DscResource -ModuleName 'xDSCDomainjoin' \r\n $dscDomainAdmin = Get-AutomationPSCredential -Name 'GAzureDomainCreds' \r\n $dscDomainName = Get-AutomationVariable -Name  'GAzureDomainName' \r\n \r\n node $AllNodes.NodeName \r\n { \r\n xDSCDomainjoin JoinDomain \r\n { \r\n Domain = $dscDomainName \r\n Credential = $dscDomainAdmin \r\n  } \r\n } \r\n }"
+               },
+                "parameters": {},
+                "description": "Domain join config"
+              },
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Automation/automationAccounts/', parameters('AutomationAccountName'))]"
+            ]
+            }
+          ]
+      }
+  ],
+  "outputs": {}
+}
