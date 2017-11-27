@@ -19,7 +19,7 @@
       },
       "Password": {
           "type": "string",
-          "defaultValue": "voow3rFO"
+          "defaultValue": "myPassword"
       }
   },
   "variables": {
