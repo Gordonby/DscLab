@@ -84,12 +84,12 @@
 
     "vmAdminUserName": "adminsnow",
     "webVmNamePrefix": "[concat(parameters('projectCode'),'-web')]",
-    "webVmNicNamePrefix": "[variables('webVmNamePrefix'), -nic']",
-    
-    "virtualNetworkName": "SnowLab3",
-    "virtualNetworkResourceGroup": "ArmLab3",
-    "webSubnetName": "web-tier",
-    "sqlSubnetName": "db-tier",
+    "webVmNicNamePrefix": "[concat(variables('webVmNamePrefix'), '-nic')]",
+
+    "virtualNetworkName": "PJB-ARM2-vnet",
+    "virtualNetworkResourceGroup": "PJB-ARM2",
+    "webSubnetName": "default",
+    "sqlSubnetName": "default",
 
     "vnetID": "[resourceId(variables('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "webSubnetRef": "[concat(variables('vnetID'), '/subnets/', variables('webSubnetName'))]",
@@ -130,10 +130,10 @@
   "resources": [
 
     {
-      "copy": {
-        "name": "nicLoop",
-        "count": "[parameters('NumberOfWebServers')]"
-      },
+      //"copy": {
+      //  "name": "nicLoop",
+      //  "count": "[parameters('NumberOfWebServers')]"
+      //},
       //"name": "[concat(variables('webVmNicNamePrefix'), copyindex())]",
       "name": "[concat(variables('webVmNicNamePrefix'),'0')]",
       "type": "Microsoft.Network/networkInterfaces",
@@ -310,7 +310,7 @@
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-04-30-preview",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNamePrefix'),'0','-nic'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNicNamePrefix'),'0'))]",
         "[resourceId('Microsoft.Compute/availabilitySets/', variables('webAvailabilitySetName'))]"
       ],
       "tags": {
@@ -343,7 +343,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNamePrefix'),'0','-nic'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNicNamePrefix'),'0'))]"
             }
           ]
         }

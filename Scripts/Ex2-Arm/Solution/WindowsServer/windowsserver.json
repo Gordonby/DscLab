@@ -1,0 +1,201 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "VmName": {
+      "type": "string"
+    },
+    "vmAdminPassword": {
+      "type": "securestring"
+    },
+    "vmWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2016-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview",
+        "2016-Datacenter"
+      ]
+    },
+    "VmSize": {
+      "type": "string",
+      "defaultValue": "Medium",
+      "allowedValues": [
+        "Small",
+        "Medium",
+        "Large"
+      ]
+    },
+    "Environment": {
+      "type": "string",
+      "defaultValue": "Dev",
+      "allowedValues": [
+        "Dev",
+        "Pre-Prod",
+        "Prod"
+      ]
+    },
+    "ServerType": {
+      "type": "string",
+      "defaultValue": "Vanilla",
+      "allowedValues": [
+        "Web-Server",
+        "Domain-Controller",
+        "SQL-Server"
+      ]
+    },
+    "virtualNetworkName": {
+      "type": "string"
+    },
+    "virtualNetworkResourceGroup": {
+      "type": "string"
+    },
+    "webSubnetName": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "WebVmShirtSize": {
+      "Small": "Standard_A0",
+      "Medium": "Standard_A3",
+      "Large": "Standard_D2_V2"
+    },
+    "SqlVmShirtSize": {
+      "Small": "Standard_A0",
+      "Medium": "Standard_A3",
+      "Large": "Standard_D2_V2"
+    },
+    "DiskType": {
+      "Managed": {
+        "createOption": "FromImage",
+        "managedDisk": {
+          "storageAccountType": "Standard_LRS"
+        }
+      },
+      "StorageAcc": {
+        "createOption": "FromImage",
+        "managedDisk": {
+          "storageAccountType": "Standard_LRS"
+        }
+      }
+    },
+    "WebVmSize": "[Variables('WebVmShirtSize')[Parameters('VmSize')]]",
+
+    "vmAdminUserName": "adminsnow",
+    "webVmNicNamePrefix": "[concat(parameters('VmName'), '-nic')]",
+
+    "vnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "webSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('webSubnetName'))]",
+ 
+    //"webLoadBalancerName": "[concat('weblb', uniqueString(parameters('projectCode')))]",
+    //"webLoadBalancerConfig": {
+    //  "None": [],
+    //  "Configured": [
+    //    {
+    //      "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('webLoadBalancerName')), '/backendAddressPools/BackendWebPool')]"
+    //    }
+    //  ]
+    //},
+
+    
+    //"webAvailabilitySetName": "[concat('webAvailSet', uniqueString(parameters('projectCode')))]",
+    //"webAvailabilitySetId": {
+    //  "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('webAvailabilitySetName'))]"
+    //},
+
+   },
+  "resources": [
+
+    {
+      //"copy": {
+      //  "name": "nicLoop",
+      //  "count": "[parameters('NumberOfWebServers')]"
+      //},
+      //"name": "[concat(variables('webVmNicNamePrefix'), copyindex())]",
+      "name": "[concat(variables('webVmNicNamePrefix'),'0')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-06-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('VmName'),'-pip'))]"
+      ],
+      "tags": {
+        "displayName": "vmNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('webSubnetRef')]"
+              },
+              //"loadBalancerBackendAddressPools": "[if(equals(parameters('Environment'), 'Prod'),variables('webLoadBalancerConfig').Configured,variables('webLoadBalancerConfig').None)]",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('VmName'),'-pip'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('VmName')]",
+      //   "name": "[concat(variables('webVmNamePrefix'),copyIndex()]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-04-30-preview",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNicNamePrefix'),'0'))]"
+      ],
+      "tags": {
+        "displayName": "vm"
+      },
+      "properties": {
+      //  "availabilitySet": "[if(equals(parameters('Environment'), 'Prod'), variables('webAvailabilitySetId'), json('null'))]",
+        "hardwareProfile": {
+          "vmSize": "[variables('WebVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('VmName')]",
+          "adminUsername": "[variables('vmAdminUsername')]",
+          "adminPassword": "[parameters('vmAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "[parameters('vmWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Standard_LRS"
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webVmNicNamePrefix'),'0'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('VmName'),'-pip')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    }
+  ],
+  "outputs": {}
+}
