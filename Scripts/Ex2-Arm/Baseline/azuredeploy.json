@@ -29,10 +29,6 @@
         "Large"
       ]
     },
-    //"NumberOfWebServers": {
-    //  "type": "int",
-    //  "defaultValue": 1
-    //},
     "Environment": {
       "type": "string",
       "defaultValue": "Dev",
@@ -130,11 +126,6 @@
   "resources": [
 
     {
-      //"copy": {
-      //  "name": "nicLoop",
-      //  "count": "[parameters('NumberOfWebServers')]"
-      //},
-      //"name": "[concat(variables('webVmNicNamePrefix'), copyindex())]",
       "name": "[concat(variables('webVmNicNamePrefix'),'0')]",
       "type": "Microsoft.Network/networkInterfaces",
       "location": "[resourceGroup().location]",
@@ -274,38 +265,8 @@
 
       ]
     },
-    //{
-    //  //"copy": {
-    //  //  "name": "shutpolicy-loop",
-    //  //  "count": "[parameters('NumberOfWebServers')]"
-    //  //},
-    //  //"name": "[concat('Shutd-',variables('webVmNamePrefix'), copyIndex())]",
-    //  "name": "[concat(variables('webVmNamePrefix'), '-Shutd')]",
-    //  "apiVersion": "2017-05-10",
-    //  "type": "Microsoft.Resources/deployments",
-    //  "properties": {
-    //    "mode": "Incremental",
-    //    "templateLink": {
-    //      "uri": "[concat(variables('nestedTemplateRoot') ,'Shutdown.json')]",
-    //      "contentVersion": "1.0.0.0"
-    //    },
-    //    "parameters": {
-    //      "virtualMachineName": {
-    //        "value": "[concat(variables('webVmNamePrefix'), '0')]"
-    //      }
-    //    }
-    //  },
-    //  "dependsOn": [
-    //    "[resourceId('Microsoft.Compute/virtualMachines/', concat(variables('webVmNamePrefix'), '0'))]"
-    //  ]
-    //},
     {
-    //   "copy": {
-    //     "name": "nicLoop",
-    //     "count": "[parameters('NumberOfWebServers')]"
-    //   },
       "name": "[concat(variables('webVmNamePrefix'),'0')]",
-    //   "name": "[concat(variables('webVmNamePrefix'),copyIndex()]",
       "type": "Microsoft.Compute/virtualMachines",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-04-30-preview",
