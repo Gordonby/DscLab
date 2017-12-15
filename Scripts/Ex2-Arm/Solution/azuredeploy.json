@@ -29,10 +29,6 @@
         "Large"
       ]
     },
-    //"NumberOfWebServers": {
-    //  "type": "int",
-    //  "defaultValue": 1
-    //},
     "Environment": {
       "type": "string",
       "defaultValue": "Dev",
@@ -57,8 +53,8 @@
     }
   },
   "variables": {
-    "nestedTemplateRoot": "https://pjbarmlab2.blob.core.windows.net/armtemplate/",
-    "sastoken": "?sv=2017-04-17&ss=b&srt=co&sp=r&se=2018-03-10T21:39:18Z&st=2017-12-08T13:39:18Z&spr=https&sig=p9DE7F%2BNN2XtOq6pwCsoxAAU6B243LgHgu21879JcUk%3D",
+    "nestedTemplateRoot": "https://YOURSTORAGEACCOUNT.blob.core.windows.net/armtemplate/",
+    "sastoken": "SASTOKENGENERATEDFROMSTORAGEACCOUNT",
 
     "WebVmShirtSize": {
       "Small": "Standard_A0",
